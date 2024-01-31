@@ -51,8 +51,8 @@ variable "label_order" {
 
 variable "managedby" {
   type        = string
-  default     = ""
-  description = ""
+  default     = "contact@slovink.com"
+  description = "slovink"
 }
 
 variable "enable" {
