@@ -8,8 +8,8 @@ provider "azurerm" {
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
 module "resource_group" {
-  source      = "git@github.com:slovink/terraform-azure-resource-group.git?ref=1.0.0"
-  version     = "1.0.1"
+  source = "git@github.com:slovink/terraform-azure-resource-group.git?ref=1.0.0"
+  #  version     = "1.0.1"
   name        = "app-nat"
   environment = "test"
   location    = "North Europe"
