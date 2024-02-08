@@ -8,8 +8,9 @@ provider "azurerm" {
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
 module "resource_group" {
-  source      = "git@github.com:slovink/terraform-azure-resource-group.git?ref=1.0.0"
-  name        = "appnew"
+  source = "git@github.com:slovink/terraform-azure-resource-group.git?ref=1.0.0"
+  #  version     = "1.0.1"
+  name        = "app-sp"
   environment = "test"
   location    = "North Europe"
 }
@@ -18,16 +19,17 @@ module "resource_group" {
 ## Virtual Network module call.
 ##-----------------------------------------------------------------------------
 module "vnet" {
-  source              = "git@github.com:slovink/terraform-azure-vnet.git?ref=1.0.0"
-  name                = "app"
+  source = "git@github.com:slovink/terraform-azure-vnet.git?ref=1.0.0"
+  #  version             = "1.0.1"
+  name                = "app-specifec"
   environment         = "test"
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   address_space       = "10.0.0.0/16"
 }
 
-module "subnet" {
-  source = "./../.."
+module "name_specific_subnet" {
+  source = "../.."
 
   name                 = "app"
   environment          = "test"
@@ -36,12 +38,13 @@ module "subnet" {
   virtual_network_name = join("", module.vnet[*].name)
 
   #subnet
-  subnet_names    = ["subnet1"]
-  subnet_prefixes = ["10.0.1.0/24"]
+  specific_name_subnet  = true
+  specific_subnet_names = "SpecificSubnet"
+  subnet_prefixes       = ["10.0.1.0/24"]
 
   # route_table
   enable_route_table = true
-  route_table_name   = "default_subnet"
+  route_table_name   = "name_specific_subnet"
   routes = [
     {
       name           = "rt-test"
