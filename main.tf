@@ -1,7 +1,8 @@
+##-----------------------------------------------------------------------------
+## Labels module callled that will be used for naming and tags.
+##-----------------------------------------------------------------------------
 module "labels" {
-
-  source = "git::git@github.com:slovink/terraform-azure-labels.git?ref=v1.0.0"
-
+  source      = "git@github.com:slovink/terraform-azure-labels.git?ref=1.0.0"
   name        = var.name
   environment = var.environment
   managedby   = var.managedby
@@ -9,9 +10,8 @@ module "labels" {
   repository  = var.repository
 }
 
-#Subnet
 resource "azurerm_subnet" "subnet" {
-  count                                         = var.enable && var.default_name_subnet == true ? length(var.subnet_names) : 0
+  count                                         = var.enable && var.specific_name_subnet == false ? length(var.subnet_names) : 0
   name                                          = "${var.name}-${var.subnet_names[count.index]}"
   resource_group_name                           = var.resource_group_name
   address_prefixes                              = [var.subnet_prefixes[count.index]]
@@ -35,7 +35,7 @@ resource "azurerm_subnet" "subnet" {
   }
 }
 
-resource "azurerm_subnet" "subnet2" {
+resource "azurerm_subnet" "specific_subnet" {
   count                                         = var.enable && var.specific_name_subnet == true ? 1 : 0
   name                                          = var.specific_subnet_names
   resource_group_name                           = var.resource_group_name
@@ -60,7 +60,6 @@ resource "azurerm_subnet" "subnet2" {
   }
 }
 
-#Nat Gateway
 resource "azurerm_public_ip" "pip" {
   count               = var.create_nat_gateway ? 1 : 0
   allocation_method   = "Static"
@@ -91,15 +90,15 @@ resource "azurerm_nat_gateway_public_ip_association" "pip_assoc" {
 }
 
 resource "azurerm_subnet_nat_gateway_association" "subnet_assoc" {
-  count          = var.create_nat_gateway ? (var.default_name_subnet == true ? length(azurerm_subnet.subnet[*].id) : length(azurerm_subnet.subnet2[*].id)) : 0
+  count          = var.create_nat_gateway ? (var.specific_name_subnet == false ? length(azurerm_subnet.subnet[*].id) : length(azurerm_subnet.specific_subnet[*].id)) : 0
   nat_gateway_id = join("", azurerm_nat_gateway.natgw[*].id)
-  subnet_id      = var.default_name_subnet == true ? azurerm_subnet.subnet[*].id[count.index] : azurerm_subnet.subnet2[*].id[count.index]
+  subnet_id      = var.specific_name_subnet == false ? element(azurerm_subnet.subnet[*].id, count.index) : element(azurerm_subnet.specific_subnet[*].id, count.index)
 }
 
 #Route Table
 resource "azurerm_route_table" "rt" {
   count               = var.enable && var.enable_route_table ? 1 : 0
-  name                = format("%s-route-table", module.labels.id)
+  name                = var.route_table_name == null ? format("%s-route-table", module.labels.id) : format("%s-%s-route-table", module.labels.id, var.route_table_name)
   location            = var.location
   resource_group_name = var.resource_group_name
   dynamic "route" {
@@ -116,13 +115,13 @@ resource "azurerm_route_table" "rt" {
 }
 
 resource "azurerm_subnet_route_table_association" "main" {
-  count          = var.enable && var.enable_route_table && var.default_name_subnet ? length(var.subnet_prefixes) : 0
+  count          = var.enable && var.enable_route_table && var.specific_name_subnet == false ? length(var.subnet_prefixes) : 0
   subnet_id      = element(azurerm_subnet.subnet[*].id, count.index)
   route_table_id = join("", azurerm_route_table.rt[*].id)
 }
 
 resource "azurerm_subnet_route_table_association" "main2" {
   count          = var.enable && var.enable_route_table && var.specific_name_subnet ? length(var.subnet_prefixes) : 0
-  subnet_id      = element(azurerm_subnet.subnet2[*].id, count.index)
+  subnet_id      = element(azurerm_subnet.specific_subnet[*].id, count.index)
   route_table_id = join("", azurerm_route_table.rt[*].id)
 }

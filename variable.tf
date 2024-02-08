@@ -1,6 +1,3 @@
-#Module      : LABEL
-#Description : Terraform label module variables.
-
 variable "name" {
   type        = string
   default     = ""
@@ -9,14 +6,8 @@ variable "name" {
 
 variable "repository" {
   type        = string
-  default     = "https://github.com/slovink/terraform-azure-subnet.git"
+  default     = "https://github.com/slovink/terraform-azure-subnet"
   description = "Terraform current module repo"
-
-  validation {
-    # regex(...) fails if it cannot find a match
-    condition     = can(regex("^https://", var.repository))
-    error_message = "The module-repo value must be a valid Git repo link."
-  }
 }
 
 variable "environment" {
@@ -27,32 +18,14 @@ variable "environment" {
 
 variable "label_order" {
   type        = list(any)
-  default     = []
+  default     = ["name", "environment"]
   description = "Label order, e.g. `name`,`application`."
 }
 
-#variable "attributes" {
-#  type        = list(any)
-#  default     = []
-#  description = "Additional attributes (e.g. `1`)."
-#}
-
-#variable "delimiter" {
-#  type        = string
-#  default     = "-"
-#  description = "Delimiter to be used between `organization`, `environment`, `name` and `attributes`."
-#}
-
-#variable "tags" {
-#  type        = map(any)
-#  default     = {}
-#  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
-#}
-
 variable "managedby" {
   type        = string
-  default     = ""
-  description = ""
+  default     = "contact@slovink.com"
+  description = "ManagedBy, eg 'slovink'."
 }
 
 variable "enable" {
@@ -117,11 +90,6 @@ EOD
   default     = {}
 }
 
-variable "default_name_subnet" {
-  type    = bool
-  default = false
-}
-
 variable "specific_name_subnet" {
   type    = bool
   default = false
@@ -159,7 +127,7 @@ variable "create_nat_gateway" {
 
 variable "enable_route_table" {
   type        = bool
-  default     = false
+  default     = true
   description = "Flag to control route table creation."
 }
 
@@ -170,8 +138,14 @@ variable "routes" {
   /*ROUTES = [{ name = "", address_prefix = "", next_hop_type = "", next_hop_in_ip_address = "" }]*/
 }
 
+variable "route_table_name" {
+  type        = string
+  default     = null
+  description = "The name of the route table."
+}
+
 variable "disable_bgp_route_propagation" {
   type        = bool
-  default     = true
+  default     = false
   description = "Boolean flag which controls propagation of routes learned by BGP on that route table."
 }

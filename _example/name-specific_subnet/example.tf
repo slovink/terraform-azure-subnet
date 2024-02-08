@@ -1,26 +1,30 @@
 provider "azurerm" {
+  skip_provider_registration = "true"
+
   features {}
 }
 
+##-----------------------------------------------------------------------------
+## Resource group in which all resources will be deployed.
+##-----------------------------------------------------------------------------
 module "resource_group" {
-  source = "git::git@github.com:slovink/terraform-azure-resource-group.git?ref=v1.0.0"
-
-  name        = "app"
+  source = "git@github.com:slovink/terraform-azure-resource-group.git?ref=1.0.0"
+  #  version     = "1.0.1"
+  name        = "app-sp"
   environment = "test"
-  label_order = ["environment", "name", ]
   location    = "North Europe"
 }
 
+##-----------------------------------------------------------------------------
+## Virtual Network module call.
+##-----------------------------------------------------------------------------
 module "vnet" {
-  source = "git::git@github.com:slovink/terraform-azure-vnet.git?ref=v1.0.0"
-
-  name                = "app"
+  source              = "git@github.com:slovink/terraform-azure-vnet.git?ref=1.0.0"
+  name                = "app-specifec"
   environment         = "test"
-  label_order         = ["name", "environment"]
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   address_space       = "10.0.0.0/16"
-  enable_ddos_pp      = false
 }
 
 module "name_specific_subnet" {
@@ -28,10 +32,9 @@ module "name_specific_subnet" {
 
   name                 = "app"
   environment          = "test"
-  label_order          = ["name", "environment"]
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
-  virtual_network_name = join("", module.vnet.vnet_name)
+  virtual_network_name = join("", module.vnet[*].name)
 
   #subnet
   specific_name_subnet  = true
@@ -39,7 +42,8 @@ module "name_specific_subnet" {
   subnet_prefixes       = ["10.0.1.0/24"]
 
   # route_table
-  enable_route_table = false
+  enable_route_table = true
+  route_table_name   = "name_specific_subnet"
   routes = [
     {
       name           = "rt-test"

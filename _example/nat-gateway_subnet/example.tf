@@ -1,47 +1,51 @@
 provider "azurerm" {
+  skip_provider_registration = "true"
+
   features {}
 }
 
-
+##-----------------------------------------------------------------------------
+## Resource group in which all resources will be deployed.
+##-----------------------------------------------------------------------------
 module "resource_group" {
-  source = "git::git@github.com:slovink/terraform-azure-resource-group.git?ref=v1.0.0"
-
-  name        = "app"
+  source      = "git@github.com:slovink/terraform-azure-resource-group.git?ref=1.0.0"
+  version     = "1.0.1"
+  name        = "app-nat"
   environment = "test"
-  label_order = ["environment", "name", ]
   location    = "North Europe"
 }
 
+##-----------------------------------------------------------------------------
+## Virtual Network module call.
+##-----------------------------------------------------------------------------
 module "vnet" {
-  source = "git::git@github.com:slovink/terraform-azure-vnet.git?ref=v1.0.0"
-
+  source = "git@github.com:slovink/terraform-azure-vnet.git?ref=1.0.0"
+  #  version             = "1.0.1"
   name                = "app"
   environment         = "test"
-  label_order         = ["name", "environment"]
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   address_space       = "10.0.0.0/16"
-  enable_ddos_pp      = false
 }
 
 module "subnet" {
   source = "../.."
 
-  name                 = "app"
-  environment          = "test"
-  label_order          = ["name", "environment"]
+  name        = "app"
+  environment = "test"
+
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
-  virtual_network_name = join("", module.vnet.vnet_name)
+  virtual_network_name = join("", module.vnet[*].name)
 
   #subnet
-  default_name_subnet = true
-  create_nat_gateway  = true
-  subnet_names        = ["subnet1", "subnet2"]
-  subnet_prefixes     = ["10.0.1.0/24", "10.0.2.0/24"]
+  create_nat_gateway = true
+  subnet_names       = ["subnet1", "subnet2"]
+  subnet_prefixes    = ["10.0.1.0/24", "10.0.2.0/24"]
 
   # route_table
-  enable_route_table = false
+  enable_route_table = true
+  route_table_name   = "nat_gateway"
   routes = [
     {
       name           = "rt-test"

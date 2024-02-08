@@ -1,16 +1,16 @@
 output "specific_subnet_name" {
   description = "The name of the subnet."
-  value       = azurerm_subnet.subnet2[*].name
+  value       = azurerm_subnet.subnet[*].name
 }
 
 output "specific_subnet_id" {
   description = "The subnet ID."
-  value       = azurerm_subnet.subnet2[*].id
+  value       = azurerm_subnet.subnet[*].id
 }
 
 output "specific_subnet_address_prefixes" {
   description = "The address prefixes for the subnet."
-  value       = azurerm_subnet.subnet2[*].address_prefixes
+  value       = azurerm_subnet.subnet[*].address_prefixes
 }
 
 output "default_subnet_name" {
