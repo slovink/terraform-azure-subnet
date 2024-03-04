@@ -8,7 +8,7 @@ provider "azurerm" {
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
 module "resource_group" {
-  source      = "git@github.com:slovink/terraform-azure-resource-group.git?ref=1.0.0"
+  source      = "git@github.com:slovink/terraform-azure-resource-group.git"
   name        = "appnew"
   environment = "test"
   location    = "North Europe"
@@ -18,7 +18,7 @@ module "resource_group" {
 ## Virtual Network module call.
 ##-----------------------------------------------------------------------------
 module "vnet" {
-  source              = "git@github.com:slovink/terraform-azure-vnet.git?ref=1.0.0"
+  source              = "git@github.com:slovink/terraform-azure-vnet.git"
   name                = "app"
   environment         = "test"
   resource_group_name = module.resource_group.resource_group_name
